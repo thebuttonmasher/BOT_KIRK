@@ -1,0 +1,64 @@
+from pirates import *
+global status
+
+def Status(game):
+    global status
+    me=False
+    other=False
+    for c in game.get_all_cities():
+        game.debug(c.owner==game.get_myself())
+        if c.owner==game.get_myself():
+            me=True
+        else:
+            other=True
+    if me and other:
+        game.debug('combined')
+        status='combined'
+    elif me:
+        game.debug('offense')
+        status='offense'
+    else:
+        game.debug('defense')
+        status='defense'
+
+def Fortify(game):
+    if len(game.get_all_cities())==1:
+        c=game.get_all_cities()[0]
+        for p in game.get_my_living_pirates():
+            if not Atck(game,p):
+                closest=5
+                pos=c.location
+                for d in game.get_enemy_living_drones():
+                    if d.distance(c.location)-3<closest:
+                        game.debug("drone detected in position " + str(pos) + "and distance " + str(d.distance(c.location)-3))
+                        closest=d.distance(c.location)-3
+                        pos=d.location
+                so=game.get_sail_options(p, pos)
+                game.set_sail(p, so[0])
+            
+            
+def farm(game):
+    return
+	        
+def drn_ctrl(game):
+    return
+	    
+def Atck(game, pir):
+    for enemy in game.get_enemy_living_aircrafts():
+        if pir.in_attack_range(enemy):
+            game.attack(pir,enemy)
+            return True
+    return False
+
+def check_attack(game):
+    return
+    
+def aggro(game):
+    return
+
+def do_turn(game):
+    global status
+    Status(game)
+    if status=='defense':
+        Fortify(game)
+    return 
