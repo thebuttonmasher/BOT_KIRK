@@ -127,9 +127,11 @@ def atck(game, pir):
 
 def check_attack(game):
     global kill
+    global team
+    game.debug(str(team))
     threat=False
     for s in game.get_enemy_living_pirates():
-        if (s.distance(game.get_all_cities()[team-1])<=3 and s.distance(game.get_all_cities()[team-1])>=0):
+        if s.distance(game.get_all_cities()[1-team])<=3 and s.distance(game.get_all_cities()[1-team])>=0:
             threat=True
     kill=threat
     
@@ -139,7 +141,7 @@ def aggro(game):
     loc = game.get_enemy_cities()[0]
     tup = loc
     
-    if loc == game.get_all_cities()[1]:
+    if loc == game.get_all_cities()[-1]:
         if loc.location.col != one.location.col:
             loc = tup = Location(loc.location.row - 1, loc.location.col - 2)
             se = game.get_sail_options(one,tup)
@@ -154,13 +156,15 @@ def aggro(game):
     if (not atck(game, one)):
 	   se = game.get_sail_options(one, tup)
     game.set_sail(one,se[-1])
-    
-    two = game.get_my_living_pirates()[-2]
+    if len(game.get_my_living_pirates())>=2:
+        two = game.get_my_living_pirates()[-2]
+    else:
+        two = game.get_my_living_pirates()[0]
     loc2 = game.get_enemy_cities()[0]
     loc2 = Location(loc2.location.row + 1, loc2.location.col)
     top = loc2
     game.debug("Location: {}".format(loc2))
-    if loc2 == game.get_all_cities()[1]:
+    if loc2 == game.get_all_cities()[-1]:
         game.debug("MEOW")
         if loc2.col != two.location.col:
             game.debug("MEOW2")
@@ -192,13 +196,19 @@ def aggro(game):
         game.set_sail(two,se[-1])
 
 def do_turn(game):
+    game.debug(len(game.get_all_cities()))
     global team
+    game.debug('Hello')
     if (game.get_all_cities()[0].owner==game.get_myself()):
-        team=1
+        team=0
     else:
-        team=2
+        team=1
     check_attack(game)
     game.debug(team)
+    print "4"
     farm(game)
+    print "5"
     aggro(game)
+    print "6"
     drn_ctrl(game)
+    print "7"
