@@ -1,0 +1,121 @@
+from pirates import *
+import random
+global status
+
+def Status(game):
+    global status
+    me=False
+    other=False
+    for c in game.get_all_cities():
+        game.debug(c.owner==game.get_myself())
+        if c.owner==game.get_myself():
+            me=True
+        else:
+            other=True
+    if me and other:
+        game.debug('combined')
+        status='combined'
+    elif me:
+        game.debug('offense')
+        status='offense'
+    else:
+        game.debug('defense')
+        status='defense'
+
+def Fortify(game):
+        for p in game.get_my_living_pirates():
+            num=0
+            if not Atck(game,p):
+                closest=5
+                c=game.get_all_cities()[num%len(game.get_all_cities())]
+                pos=c.location
+                for d in game.get_enemy_living_drones():
+                    if d.distance(c.location)-3<closest:
+                        game.debug("drone detected in position " + str(pos) + "and distance " + str(d.distance(c.location)-3))
+                        closest=d.distance(c.location)-3
+                        pos=d.location
+                so=game.get_sail_options(p, pos)
+                game.set_sail(p, so[random.randint(0,len(so)-1)])
+            num+=1
+            
+def farm(game):
+    return
+	        
+def Capture(game):
+    plist=game.get_my_living_pirates()
+    ilist=game.get_all_islands()
+    if len(plist)>len(ilist):
+        for p in plist[:len(ilist)]:
+            if not Atck(game,p):
+                i=0
+                pos=ilist[i].location
+                so=game.get_sail_options(p, pos)
+                game.set_sail(p, so[random.randint(0,len(so)-1)])
+                i+=1
+        for p in plist[len(ilist):]:
+            if not Atck(game,p):
+                num=0
+                closest=8
+                c=game.get_all_cities()[num%len(game.get_all_cities())]
+                pos=c.location
+                for e in game.get_enemy_living_pirates():
+                    if e.distance(c.location)-1<closest:
+                        game.debug("enemy detected in position " + str(pos) + "and distance " + str(e.distance(c.location)-3))
+                        closest=e.distance(c.location)-1
+                        pos=e.location
+                so=game.get_sail_options(p, pos)
+                game.set_sail(p, so[random.randint(0,len(so)-1)])
+                num+=1
+
+            
+def Drone_Control(game):
+    clist=[]
+    for c in game.get_all_cities():
+        if c.owner==game.get_myself():
+            clist.append(c)
+    if len(game.get_my_living_drones())>=30:
+        col_inc=-1
+        row_inc=1
+        col_step=3
+        row_step=0
+        for d in game.get_my_living_drones():
+            closest=1000
+            pos=clist[0].location
+            for c in clist:
+                if c.distance(d)<closest:
+                    closest=c.distance(d)
+                    pos=c.location
+                    pos.col+=row_step
+                    pos.row+=row_step
+            col_step+=col_inc
+            row_step+=row_inc
+            if (col_step==3 or col_step==-3):
+                col_inc=-col_inc
+            if (row_step==3 or row_step==-3):
+                row_inc=-row_inc
+            so=game.get_sail_options(d, pos)
+            game.set_sail(d, so[random.randint(0,len(so)-1)])
+        
+	    
+def Atck(game, pir):
+    for enemy in game.get_enemy_living_aircrafts():
+        if pir.in_attack_range(enemy):
+            game.attack(pir,enemy)
+            return True
+    return False
+
+def check_attack(game):
+    return
+    
+def aggro(game):
+    return
+
+def do_turn(game):
+    global status
+    Status(game)
+    if status=='defense':
+        Fortify(game)
+    if status=='offense':
+        Capture(game)
+        Drone_Control(game)
+    return 
