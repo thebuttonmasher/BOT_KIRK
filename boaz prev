@@ -1,0 +1,204 @@
+from pirates import *
+global phase1
+phase1=1
+global phase2
+phase2=1
+global phase3
+phase3=1
+global kill
+kill=False
+global team
+def farm(game):
+    four = game.get_my_living_pirates()[:-2]
+    global phase1
+    global phase2
+    global phase3
+    dead=game.get_all_my_pirates()
+    for p in dead:
+        if (not p.is_alive() and p.id==0):
+            phase1=1
+        if (not p.is_alive() and p.id==1):
+            phase2=1
+        if (not p.is_alive() and p.id==2):
+            phase3=1
+    for p in four:
+        fire=atck(game,p)
+        if (not fire and p.id==0):
+            if (phase1==2):
+                if (game.get_all_islands()[team].location==p.location):
+                    phase1=3
+                else:
+                    dst = game.get_all_islands()[team]
+                    so = game.get_sail_options(p, dst)
+                    game.set_sail(p, so[-1])
+            elif (phase1==1):
+                dst = game.get_all_islands()[3]
+                so = game.get_sail_options(p, dst)
+                game.set_sail(p, so[-1])
+                if (p.location==game.get_all_islands()[3].location):
+                    phase1=2
+            elif (phase1==3):
+                if (game.get_all_islands()[0].location==p.location):
+                    phase1=4
+                else:
+                    dst = game.get_all_islands()[0]
+                    so = game.get_sail_options(p, dst)
+                    game.set_sail(p, so[-1])
+            else:
+                if (game.get_all_islands()[3-team].location==p.location):
+                    phase1=2
+                else:
+                    dst = game.get_all_islands()[3-team]
+                    so = game.get_sail_options(p, dst)
+                    game.set_sail(p, so[-1])
+        elif (not fire and p.id==1):
+            if (phase2==1):
+                dst = game.get_all_islands()[3]
+                so = game.get_sail_options(p, dst)
+                game.set_sail(p, so[-1])
+                if (p.location==game.get_all_islands()[3].location):
+                    phase2=2
+            elif (phase2==2):
+                if (game.get_all_islands()[team].location==p.location):
+                    phase2=3
+                else:
+                    dst = game.get_all_islands()[team]
+                    so = game.get_sail_options(p, dst)
+                    game.set_sail(p, so[-1])
+            elif (phase2==3):
+                if (game.get_all_islands()[3-team].location==p.location):
+                    phase2=4
+                else:
+                    dst = game.get_all_islands()[3-team]
+                    so = game.get_sail_options(p, dst)
+                    game.set_sail(p, so[-1])
+            else:
+                if (game.get_all_islands()[0].location==p.location):
+                    phase2=2
+                else:
+                    dst = game.get_all_islands()[0]
+                    so = game.get_sail_options(p, dst)
+                    game.set_sail(p, so[-1])
+        elif (not fire):
+            if (phase3==1):
+                dst = game.get_all_islands()[3]
+                so = game.get_sail_options(p, dst)
+                game.set_sail(p, so[-1])
+                if (p.location==game.get_all_islands()[3].location):
+                    phase3=2
+            elif kill:
+                dst = game.get_all_cities()[team-1]
+                so = game.get_sail_options(p, dst)
+                game.set_sail(p, so[-1])
+            elif (phase3==2):
+                if (game.get_all_islands()[team].location==p.location):
+                    phase3=3
+                else:
+                    dst = game.get_all_islands()[team]
+                    so = game.get_sail_options(p, dst)
+                    game.set_sail(p, so[-1])
+            elif (phase3==3):
+                if (game.get_all_islands()[3-team].location==p.location):
+                    phase3=4
+                else:
+                    dst = game.get_all_islands()[3-team]
+                    so = game.get_sail_options(p, dst)
+                    game.set_sail(p, so[-1])
+            else:
+                if (game.get_all_islands()[0].location==p.location):
+                    phase3=2
+                else:
+                    dst = game.get_all_islands()[0]
+                    so = game.get_sail_options(p, dst)
+                    game.set_sail(p, so[-1])
+	        
+def drn_ctrl(game):
+	for d in game.get_my_living_drones():
+	    dst = game.get_my_cities()[0]
+	    so = game.get_sail_options(d, dst)
+	    game.set_sail(d, so[-1])
+	    
+def atck(game, pir):
+    for enemy in game.get_enemy_living_aircrafts():
+        if pir.in_attack_range(enemy):
+            game.attack(pir,enemy)
+            return True
+    return False
+
+def check_attack(game):
+    global kill
+    threat=False
+    for s in game.get_enemy_living_pirates():
+        if (s.distance(game.get_all_cities()[team-1])<=3 and s.distance(game.get_all_cities()[team-1])>=0):
+            threat=True
+    kill=threat
+    
+    
+def aggro(game):
+    one = game.get_my_living_pirates()[-1]
+    loc = game.get_enemy_cities()[0]
+    tup = loc
+    
+    if loc == game.get_all_cities()[1]:
+        if loc.location.col != one.location.col:
+            loc = tup = Location(loc.location.row - 1, loc.location.col - 2)
+            se = game.get_sail_options(one,tup)
+        else:
+            se = game.get_sail_options(one,tup)
+    else:
+        if loc.location.col != one.location.col:
+            loc = tup = Location(loc.location.row - 1, loc.location.col + 2)
+            se = game.get_sail_options(one,tup)
+        else:
+            se = game.get_sail_options(one,tup) 
+    if (not atck(game, one)):
+	   se = game.get_sail_options(one, tup)
+    game.set_sail(one,se[-1])
+    
+    two = game.get_my_living_pirates()[-2]
+    loc2 = game.get_enemy_cities()[0]
+    loc2 = Location(loc2.location.row + 1, loc2.location.col)
+    top = loc2
+    game.debug("Location: {}".format(loc2))
+    if loc2 == game.get_all_cities()[1]:
+        game.debug("MEOW")
+        if loc2.col != two.location.col:
+            game.debug("MEOW2")
+            loc2.col = loc2.col + 1
+            top = loc2
+            se = game.get_sail_options(two,top)
+        else:
+            game.debug("MEOW3")
+            loc2.col = loc2.col
+            top = loc2
+            se = game.get_sail_options(two,top)
+    else:
+        game.debug("ROOF")
+        if loc2.col != two.location.col:
+            game.debug("ROOF2")
+            loc2.col = loc2.col + 1
+            top = loc2
+            se = game.get_sail_options(two,top)
+        else:
+            game.debug("ROOF3")
+            game.debug("two: {}".format(two))
+            game.debug("top: {}".format(top))
+            loc2.col = loc2.col - 1
+            top = loc2
+            se = game.get_sail_options(two,top) 
+        if (not atck(game, two)):
+            game.debug("ROOF4")
+            se = game.get_sail_options(two,top)
+        game.set_sail(two,se[-1])
+
+def do_turn(game):
+    global team
+    if (game.get_all_cities()[0].owner==game.get_myself()):
+        team=1
+    else:
+        team=2
+    check_attack(game)
+    game.debug(team)
+    farm(game)
+    aggro(game)
+    drn_ctrl(game)
