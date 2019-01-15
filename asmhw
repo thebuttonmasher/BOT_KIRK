@@ -1,0 +1,42 @@
+DATA segment
+
+klt db 0,0,0,0,'$'
+    
+DATA ends
+
+assume cs:code ,ds:DATA
+
+code segment
+
+
+    
+start:
+mov ax, DATA
+mov ax, ds
+mov cx, 4
+lea bx, klt
+kelet:
+mov ah, 01h 
+int 21h
+mov [bx], al
+inc bx
+
+loop kelet
+
+xor si, si
+mov cx, 4 
+sof:
+sub [bx], 30
+mov ax, 10
+add si, [bx]
+mul si
+mov si, ax 
+dec bx
+loop sof
+
+
+
+
+
+code ends
+
